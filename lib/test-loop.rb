@@ -1,16 +1,16 @@
 require 'ostruct'
 require 'diff/lcs'
 
-module Test
-  Loop = OpenStruct.new
+module TestLoop
+  Config = OpenStruct.new
 
-  Loop.delay_per_iteration = 1
+  Config.delay_per_iteration = 1
 
-  Loop.overhead_file_globs = ['{test,spec}/{test,spec}_helper.rb']
+  Config.overhead_file_globs = ['{test,spec}/{test,spec}_helper.rb']
 
-  Loop.reabsorb_file_globs = Loop.overhead_file_globs.dup
+  Config.reabsorb_file_globs = Config.overhead_file_globs.dup
 
-  Loop.test_file_matchers = {
+  Config.test_file_matchers = {
     # source files that correspond to test files
     'lib/**/*.rb' => lambda do |path|
       extn = File.extname(path)
@@ -22,14 +22,14 @@ module Test
     '{test,spec}/**/*_{test,spec}.rb' => lambda {|path| path }
   }
 
-  Loop.test_name_parser = lambda do |line|
+  Config.test_name_parser = lambda do |line|
     case line
     when /^\s*def\s+test_(\w+)/ then $1
     when /^\s*(test|context|should|describe|it)\b.+?(['"])(.*?)\2/ then $3
     end
   end
 
-  Loop.before_each_test = [
+  Config.before_each_test = [
     lambda {|test_file, log_file, test_names|
       unless test_names.empty?
         test_name_pattern = test_names.map do |name|
@@ -47,9 +47,9 @@ module Test
     }
   ]
 
-  Loop.after_each_test = []
+  Config.after_each_test = []
 
-  class << Loop
+  class << self
     def run
       init_shared_vars
       trap_user_signals
@@ -92,7 +92,7 @@ module Test
     end
 
     def pause_momentarily
-      sleep delay_per_iteration
+      sleep Config.delay_per_iteration
     end
 
     def init_shared_vars
@@ -128,14 +128,14 @@ module Test
         load config_file
 
         # ...and if the configuration file changes, reload everything.
-        reabsorb_file_globs.push config_file
+        Config.reabsorb_file_globs.push config_file
       end
     end
 
     def load_user_overhead
       notify 'Absorbing overhead...'
       $LOAD_PATH.unshift 'lib', 'test', 'spec'
-      Dir[*overhead_file_globs].each do |file|
+      Dir[*Config.overhead_file_globs].each do |file|
         require File.basename(file, File.extname(file))
       end
     end
@@ -146,7 +146,7 @@ module Test
         reap_worker_queue
 
         # find test files that have been modified since the last run
-        test_files = test_file_matchers.map do |source_glob, test_matcher|
+        test_files = Config.test_file_matchers.map do |source_glob, test_matcher|
           Dir[source_glob].select {|file| File.mtime(file) > @last_ran_at }.
           map {|path| Dir[test_matcher.call(path).to_s] }
         end.flatten.uniq
@@ -161,7 +161,7 @@ module Test
         end
 
         # reabsorb test execution overhead as necessary
-        if Dir[*reabsorb_file_globs].any? {|f| File.mtime(f) > @started_at }
+        if Dir[*Config.reabsorb_file_globs].any? {|f| File.mtime(f) > @started_at }
           notify 'Overhead changed!'
           reload_master_process test_files
         end
@@ -254,7 +254,7 @@ module Test
             # search backwards from the line that changed up to
             # the first line in the file for test definitions
             change.position.downto(0) do |i|
-              if test_name = test_name_parser.call(new_lines[i])
+              if test_name = Config.test_name_parser.call(new_lines[i])
                 throw :found, test_name
               end
             end; nil # prevent unsuccessful search from returning an integer
@@ -262,7 +262,7 @@ module Test
         end.compact.uniq
 
         # tell the testing framework to run only the changed test blocks
-        before_each_test.each do |hook|
+        Config.before_each_test.each do |hook|
           hook.call worker.test_file, worker.log_file, test_names
         end
 
@@ -287,7 +287,7 @@ module Test
         STDERR.print File.read(worker.log_file)
       end
 
-      after_each_test.each do |hook|
+      Config.after_each_test.each do |hook|
         hook.call worker.test_file, worker.log_file, worker.exit_status,
                   worker.started_at, worker.finished_at - worker.started_at
       end

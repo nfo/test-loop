@@ -1,6 +1,6 @@
-require 'test/loop'
+require 'test-loop'
 
-Test::Loop.after_each_test.push lambda {
+TestLoop::Config.after_each_test.push lambda {
   |test_file, log_file, run_status, started_at, elapsed_time|
   unless run_status.success? or run_status.signaled?
     title = 'FAIL at %s in %0.1fs' % [started_at.strftime('%r'), elapsed_time]

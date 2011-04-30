@@ -100,23 +100,24 @@ Configuration
 
 test-loop looks for a configuration file named `.test-loop` in the current
 working directory.  This configuration file is a normal Ruby script in which
-you can query and modify the `Test::Loop` OpenStruct configuration as follows:
+you can query and modify the `TestLoop::Config` OpenStruct configuration as
+follows:
 
-### Test::Loop.delay_per_iteration
+### TestLoop::Config.delay_per_iteration
 
 Number of seconds to wait after each loop iteration.  The default value is 1.
 
-### Test::Loop.overhead_file_globs
+### TestLoop::Config.overhead_file_globs
 
 Array of file globbing patterns that describe a set of Ruby scripts that are
 loaded into the main Ruby process as overhead.
 
-### Test::Loop.reabsorb_file_globs
+### TestLoop::Config.reabsorb_file_globs
 
 Array of file globbing patterns that describe a set of files which cause the
 overhead to be reabsorbed whenever they change.
 
-### Test::Loop.test_file_matchers
+### TestLoop::Config.test_file_matchers
 
 Hash that maps a file globbing pattern describing a set of source files to a
 lambda function yielding a file globbing pattern describing a set of test
@@ -132,7 +133,7 @@ by an underscore and the file name in reverse like this:
 
 Then you would add the following to your configuration file:
 
-    Test::Loop.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
+    TestLoop::Config.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
       extn = File.extname(path)
       name = File.basename(path, extn)
       "{test,spec}/**/#{name}_#{name.reverse}#{extn}"
@@ -142,7 +143,7 @@ In addition, these lambda functions can return `nil` if they do not wish for a
 particular source file to be tested.  For example, to ignore tests for all
 source files except those within a `models/` directory, you would write:
 
-    Test::Loop.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
+    TestLoop::Config.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
       if path.include? '/models/'
         "{test,spec}/**/#{File.basename(path)}"
       end
@@ -151,13 +152,13 @@ source files except those within a `models/` directory, you would write:
 For source files not satisfying the above constraint, this lambda function
 will return `nil`, thereby excluding those source files from being tested.
 
-### Test::Loop.test_name_parser
+### TestLoop::Config.test_name_parser
 
 Lambda function that is passed a line of source code to determine whether that
 line can be considered as a test definition, in which case it must return the
 name of the test being defined.
 
-### Test::Loop.before_each_test
+### TestLoop::Config.before_each_test
 
 Array of lambda functions that are executed inside the worker process before
 loading the test file.
@@ -165,12 +166,12 @@ loading the test file.
 These functions are passed (1) the path to the test file, (2) the path to
 the log file containing the live output of running the test file, and (3) an
 array containing the names of tests (which were identified by
-`Test::Loop.test_name_parser`) inside the test file that have changed since
+`TestLoop::Config.test_name_parser`) inside the test file that have changed since
 the last run of the test file.
 
 For example, to print a worker process' ID and what work it will perform:
 
-    Test::Loop.before_each_test.push lambda {
+    TestLoop::Config.before_each_test.push lambda {
       |test_file, log_file, test_names|
 
       p :worker_pid => $$,
@@ -183,7 +184,7 @@ By default, the first function in this array instructs Test::Unit and RSpec to
 only run certain test blocks inside the test file.  This accelerates your
 test-driven development cycle and improves productivity!
 
-### Test::Loop.after_each_test
+### TestLoop::Config.after_each_test
 
 Array of lambda functions that are executed inside the master process after a
 test has finished running.
@@ -197,17 +198,17 @@ seconds it took for the overall test execution to complete.
 For example, to delete log files for successful tests, add the following to
 your configuration file:
 
-    Test::Loop.after_each_test.push lambda {
+    TestLoop::Config.after_each_test.push lambda {
       |test_file, log_file, run_status, started_at, elapsed_time|
 
       File.delete(log_file) if run_status.success?
     }
 
 For example, to see on-screen-display notifications only about test failures,
-add the following to your configuration file (**NOTE:** the `test/loop/notify`
+add the following to your configuration file (**NOTE:** the `test-loop/notify`
 preset does this for you):
 
-    Test::Loop.after_each_test.push lambda {
+    TestLoop::Config.after_each_test.push lambda {
       |test_file, log_file, run_status, started_at, elapsed_time|
 
       unless run_status.success? or run_status.signaled?
@@ -227,7 +228,7 @@ For example, to see on-screen-display notifications about completed test runs,
 regardless of whether they passed or failed, add the following to your
 configuration file:
 
-    Test::Loop.after_each_test.push lambda {
+    TestLoop::Config.after_each_test.push lambda {
       |test_file, log_file, run_status, started_at, elapsed_time|
 
       success = run_status.success?
@@ -252,11 +253,11 @@ The following sub-libraries provide "preset" configurations.  To use them,
 simply add the require() lines shown below to your `.test-loop` file or to
 your application's `test/test_helper.rb` or `spec/spec_helper.rb` file.
 
-### require 'test/loop/notify'
+### require 'test-loop/notify'
 
 Shows on-screen-display notifications for test failures.
 
-### require 'test/loop/rails'
+### require 'test-loop/rails'
 
 Provides support for the Ruby on Rails web framework.
 
@@ -271,7 +272,7 @@ Known issues
 ### Ruby on Rails
 
   * Ensure that your `config/environments/test.rb` file disables class caching
-    as follows (**NOTE:** if you are using Rails 3, the `test/loop/rails`
+    as follows (**NOTE:** if you are using Rails 3, the `test-loop/rails`
     preset will automatically do this for you):
 
         config.cache_classes = false
