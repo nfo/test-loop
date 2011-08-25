@@ -238,7 +238,12 @@ module Test
       notify "TEST #{worker.test_file}"
 
       worker.id = @worker_id_pool.shift
-      worker.log_file = worker.test_file + '.log'
+      
+      # worker.log_file = worker.test_file + '.log'
+      # DIRTY : add a dot in front of log files to make them invisible
+      parts = worker.test_file.split('/')
+      parts[-1] = '.' + parts[-1]
+      worker.log_file = parts.join('/') + '.log'
 
       # cache the contents of the test file for diffing below
       new_lines = File.readlines(worker.test_file)
