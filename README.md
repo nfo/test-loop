@@ -166,7 +166,7 @@ Then you would add the following to your configuration file:
 
     Test::Loop.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
       name = File.basename(path, '.rb')
-      "{test,spec}/**/#{name}_#{name.reverse}.rb"
+      "{test}/**/#{name}_#{name.reverse}.rb"
     end
 
 In addition, these lambda functions can return `nil` if they do not wish for a
@@ -175,7 +175,7 @@ source files except those within a `models/` directory, you would write:
 
     Test::Loop.test_file_matchers['{lib,app}/**/*.rb'] = lambda do |path|
       if path.include? '/models/'
-        "{test,spec}/**/#{File.basename(path)}"
+        "{test}/**/#{File.basename(path)}"
       end
     end
 

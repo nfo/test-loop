@@ -7,18 +7,18 @@ Test::Loop.reabsorb_file_globs.push(
   'Gemfile.lock'
 )
 
-Test::Loop.test_file_matchers['{app,lib,test,spec}/**/*.rb'] =
+Test::Loop.test_file_matchers['{app,lib,test}/**/*.rb'] =
   lambda do |path|
     base = File.basename(path, '.rb')
     poly = ActiveSupport::Inflector.pluralize(base)
-    "{test,spec}/**/{#{base},#{poly}_*}_{test,spec}.rb"
+    "{test}/**/{#{base},#{poly}_*}_{test}.rb"
   end
 
-Test::Loop.test_file_matchers['{test,spec}/factories/**/*_factory.rb'] =
+Test::Loop.test_file_matchers['{test}/factories/**/*_factory.rb'] =
   lambda do |path|
     base = File.basename(path, '_factory.rb')
     poly = ActiveSupport::Inflector.pluralize(base)
-    "{test,spec}/**/{#{base},#{poly}_*}_{test,spec}.rb"
+    "{test}/**/{#{base},#{poly}_*}_{test}.rb"
   end
 
 begin

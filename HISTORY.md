@@ -500,7 +500,7 @@ Version 7.0.0 (2011-02-10)
 Version 6.0.0 (2011-02-09)
 ------------------------------------------------------------------------------
 
-  * Only consider `{test,spec}_helper.rb` as overhead, not all `*_helper.rb`.
+  * Only consider `{test}_helper.rb` as overhead, not all `*_helper.rb`.
 
   * Give the user freedom to inspect and change the default configuration by
     storing it in a `$test_loop_config` global variable instead of returning
@@ -667,7 +667,7 @@ Version 1.2.0 (2010-11-23)
 Version 1.1.0 (2010-11-22)
 ------------------------------------------------------------------------------
 
-  * All *_{test,spec}_helper.rb files inside test/ and
+  * All *_{test}_helper.rb files inside test/ and
     spec/ are now considered to be absorable overhead.
 
 ------------------------------------------------------------------------------

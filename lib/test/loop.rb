@@ -10,7 +10,7 @@ module Test
 
   Loop.max_concurrent_tests = 4
 
-  Loop.overhead_file_globs = ['{test,spec}/{test,spec}_helper.rb']
+  Loop.overhead_file_globs = ['{test}/{test}_helper.rb']
 
   Loop.reabsorb_file_globs = Loop.overhead_file_globs.dup
 
@@ -18,11 +18,11 @@ module Test
     # source files that correspond to test files
     'lib/**/*.rb' => lambda do |path|
       base = File.basename(path, '.rb')
-      "{test,spec}/**/#{base}_{test,spec}.rb"
+      "{test}/**/#{base}_{test}.rb"
     end,
 
     # the actual test files themselves
-    '{test,spec}/**/*_{test,spec}.rb' => lambda {|path| path }
+    '{test}/**/*_{test}.rb' => lambda {|path| path }
   }
 
   Loop.test_name_parser = lambda do |line|
